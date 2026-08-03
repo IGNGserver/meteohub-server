@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.0 — First stable release
+
+- First stable MeteoHub Server release with API v1 compatibility.
+- Production Compose pulls the immutable GHCR patch tag by default.
+- Candidate and release workflows publish SBOM/provenance metadata and stable image aliases.
+- Production startup rejects missing database configuration, placeholder token peppers, and debug logging.
+
+Known limitations: the server is CPU-only; the bundled Open-Meteo adapter is a provider boundary and does not guarantee forecast accuracy; HTTPS termination remains the responsibility of an existing trusted reverse proxy or VPN.
+
 ## 0.1.0 — Phase 1
 
 - Initial self-hosted Fastify/TypeScript server.

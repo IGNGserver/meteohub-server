@@ -10,7 +10,7 @@ docker compose ps
 docker compose logs -f server
 ```
 
-The server image is tagged as `ghcr.io/${GHCR_OWNER:-IGNGserver}/meteohub-server:${IMAGE_TAG:-latest}` by Compose. The default `latest` is only a local tag; this phase does not publish an image or create a Release.
+The server image is `ghcr.io/${GHCR_OWNER:-IGNGserver}/meteohub-server:${IMAGE_TAG:-latest}`. The release Compose file only pulls this image; it does not build a production container from source. `latest` is suitable for a personal installation, while production should pin `IMAGE_TAG` to an exact patch tag such as `1.0.0`.
 
 PostgreSQL data is in the named `postgres-data` volume. Backups and logs are bind-mounted from `./backups` and `./logs`. The example resource limit is 2 CPU / 2 GB per service; use 4 CPU / 8 GB host capacity for comfortable multi-location history.
 
