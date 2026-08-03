@@ -97,6 +97,22 @@ jobs:
             org.opencontainers.image.licenses=MIT
           provenance: mode=max
           sbom: true
+      - name: Export amd64 image archive for constrained hosts
+        shell: bash
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          IMAGE: ghcr.io/${{ github.repository_owner }}/meteohub-server
+        run: |
+          set -euo pipefail
+          docker buildx build \
+            --platform linux/amd64 \
+            --tag "${IMAGE,,}:release-${VERSION}-amd64" \
+            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
+            --label "org.opencontainers.image.revision=${{ github.sha }}" \
+            --label "org.opencontainers.image.version=${VERSION}" \
+            --label "org.opencontainers.image.licenses=MIT" \
+            --load .
+          docker save "${IMAGE,,}:release-${VERSION}-amd64" | gzip -c > "meteohub-server-${VERSION}-linux-amd64.tar.gz"
       - name: Generate source SBOM
         uses: anchore/sbom-action@v0
         with:
@@ -109,6 +125,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sha256sum compose.yml .env.example README.md DEPLOYMENT.md BACKUP_AND_RESTORE.md THIRD_PARTY_NOTICES.md meteohub-server-${{ steps.meta.outputs.version }}.spdx.json > SHA256SUMS
-          gh release upload "$GITHUB_REF_NAME" compose.yml .env.example README.md DEPLOYMENT.md BACKUP_AND_RESTORE.md THIRD_PARTY_NOTICES.md SHA256SUMS meteohub-server-${{ steps.meta.outputs.version }}.spdx.json --clobber
+          sha256sum compose.yml .env.example README.md DEPLOYMENT.md BACKUP_AND_RESTORE.md docs/release-runbook.md docs/ubuntu-vm-deployment.md COMPATIBILITY.md THIRD_PARTY_NOTICES.md "meteohub-server-${{ steps.meta.outputs.version }}-linux-amd64.tar.gz" meteohub-server-${{ steps.meta.outputs.version }}.spdx.json > SHA256SUMS
+          gh release upload "$GITHUB_REF_NAME" compose.yml .env.example README.md DEPLOYMENT.md BACKUP_AND_RESTORE.md docs/release-runbook.md docs/ubuntu-vm-deployment.md COMPATIBILITY.md THIRD_PARTY_NOTICES.md "meteohub-server-${{ steps.meta.outputs.version }}-linux-amd64.tar.gz" SHA256SUMS meteohub-server-${{ steps.meta.outputs.version }}.spdx.json --clobber
           echo "Stable image digest: ${{ steps.build.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"
