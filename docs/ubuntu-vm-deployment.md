@@ -17,4 +17,15 @@ This file records only non-secret deployment facts. Passwords, tokens, private k
 
 ## Deployment and acceptance
 
-The final release commit will append the exact image digest, host port, health/pairing/persistence/backup/restore/restart/rollback results, and timestamps here after those checks are actually completed. An item is not considered successful until the command output is recorded in this file and in the final report.
+The VM account cannot currently write `/opt` and `sudo -n` is unavailable, so the legal user-owned fallback is `~/meteohub/`. Existing services were not changed.
+
+Candidate verification completed on 2026-08-03:
+
+- Candidate tag: `ghcr.io/igngserver/meteohub-server:candidate-1.0.0`
+- Multi-architecture candidate index digest: `sha256:69e6bbbcb2fee54d9193bb2cfd5c5d0cb41c8d139015116c6430b327a01ebc8e`
+- Candidate host port: `18081`, LAN/VPN-only; no public HTTPS exposure
+- Candidate checks passed: health, API v1 version, unauthenticated 401, pairing, location CRUD, city candidates, source listing, real Open-Meteo fetch, composite forecast, analysis, container restart persistence, migration rerun, custom-format backup, and restore into a temporary PostgreSQL database
+- The VM's direct GHCR layer download is severely throttled. The identical amd64 build exported by the GHCR publishing workflow was transferred and loaded with its GHCR image tag; no source build was used. Direct GHCR pull remains a network limitation to resolve before relying on pull-only recovery on this VM.
+- This VM has no passwordless sudo, so a Docker daemon restart/host-reboot simulation is pending authorization. Container restart and Compose restart were verified.
+
+The formal stable version and rollback checks will be appended after the signed Android and server Release workflows complete. An item is not considered successful until the command output is recorded here and in the final report.
