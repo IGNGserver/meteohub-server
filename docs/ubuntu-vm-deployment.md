@@ -25,7 +25,7 @@ Candidate verification completed on 2026-08-03:
 - Multi-architecture candidate index digest: `sha256:69e6bbbcb2fee54d9193bb2cfd5c5d0cb41c8d139015116c6430b327a01ebc8e`
 - Candidate host port: `18081`, LAN/VPN-only; no public HTTPS exposure
 - Candidate checks passed: `GET /api/v1/health`, API v1 version, unauthenticated 401, pairing, location CRUD, city candidates, source listing, real Open-Meteo fetch, composite forecast, analysis, normal Compose restart persistence, migration rerun, custom-format backup, and restore into a temporary PostgreSQL database
-- The VM's direct GHCR layer download is severely throttled. The identical amd64 build exported by the GHCR publishing workflow was transferred and loaded with its GHCR image tag; no source build was used. Direct GHCR pull remains a network limitation to resolve before relying on pull-only recovery on this VM.
+- The VM initially encountered GHCR layer throttling, so the identical amd64 workflow archive was used as a verified fallback. A subsequent direct pull of `ghcr.io/igngserver/meteohub-server:1.0.0` succeeded and returned the formal digest below; no source build was used.
 - This VM has no passwordless sudo, so a Docker daemon restart/host-reboot simulation is pending authorization. Normal Compose restart and data persistence were verified. An explicit `docker kill` left the container stopped, which is expected for an operator-requested stop under `restart: unless-stopped`; it is not evidence of daemon-failure recovery. The service was restored with the exact release Compose file.
 
 ## Formal v1.0.0 deployment
@@ -34,7 +34,7 @@ Candidate verification completed on 2026-08-03:
 - Stable image: `ghcr.io/igngserver/meteohub-server:1.0.0`
 - Stable multi-architecture digest: `sha256:32d089b5546f38a9a9bd3be215a4ad8e2c10f3cc50b9cf560d672f94f5806a53`
 - Stable aliases verified to resolve to the same digest: `1.0.0`, `1.0`, `1`, `latest`
-- Stable amd64 archive was checksum-verified from the Draft Release and loaded on the VM; no source checkout was built
+- Stable amd64 archive was checksum-verified from the Draft Release and loaded on the VM; a subsequent direct pull of the exact stable tag also succeeded with the same digest. No source checkout was built
 - Deployment directory: `~/meteohub/` (the requested `/opt/meteohub/` path is not writable by this account without an unavailable sudo password)
 - Image tag pinned in production `.env`: `IMAGE_TAG=1.0.0`
 - Listener: Docker publishes `0.0.0.0:18081` and `[::]:18081`; it is documented and used as LAN/VPN-only because no trusted public HTTPS endpoint is available
