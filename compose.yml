@@ -21,7 +21,7 @@ services:
           memory: 2G
 
   server:
-    image: ghcr.io/${GHCR_OWNER:-IGNGserver}/meteohub-server:${IMAGE_TAG:-latest}
+    image: ghcr.io/${GHCR_OWNER:-igngserver}/meteohub-server:${IMAGE_TAG:-latest}
     restart: unless-stopped
     depends_on:
       postgres:
