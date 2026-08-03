@@ -5,10 +5,13 @@
 Create `.env` from `.env.example`, set a unique `POSTGRES_PASSWORD` and a long random `TOKEN_PEPPER`, then run:
 
 ```bash
-docker compose up -d --build
+docker compose up -d
 docker compose ps
 docker compose logs -f server
 ```
+
+Use the pull-only `compose.yml` and `.env.example` from a GitHub Release for
+production. Do not build a production image from a source checkout on the VM.
 
 The server image is `ghcr.io/${GHCR_OWNER:-IGNGserver}/meteohub-server:${IMAGE_TAG:-latest}`. The release Compose file only pulls this image; it does not build a production container from source. `latest` is suitable for a personal installation, while production should pin `IMAGE_TAG` to an exact patch tag such as `1.0.0`.
 
@@ -26,7 +29,7 @@ The API process does not silently mutate the schema on boot. This keeps upgrades
 
 ## LAN and TLS
 
-Pairing and device tokens are credentials. Prefer a reverse proxy with a trusted LAN certificate or a private VPN. Do not disable TLS verification in a client to “fix” certificate errors. Plain HTTP is acceptable only on a trusted, isolated LAN during initial development, with no port forwarding and a clear understanding that pairing codes/tokens can be observed by anyone on that network. Do not expose port 8080 directly to the public internet.
+Pairing and device tokens are credentials. Prefer a reverse proxy with a trusted LAN certificate or a private VPN. Do not disable TLS verification in a client to “fix” certificate errors. Plain HTTP is acceptable only on a trusted, isolated LAN during initial development or a controlled first deployment, with no port forwarding and a clear understanding that pairing codes/tokens can be observed by anyone on that network. The Android client requires an explicit private-LAN HTTP opt-in and never disables HTTPS certificate verification. Do not expose port 8080 directly to the public internet.
 
 The server does not terminate TLS itself in Phase 1; reverse-proxy TLS and certificate rotation are deployment concerns. The API deliberately sets no CORS origin for browser use by default.
 

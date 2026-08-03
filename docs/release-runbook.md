@@ -43,7 +43,7 @@ For a stable `1.0.0` release, the server publishes `1.0.0`, `1.0`, `1`, and `lat
 
 ## Release lifecycle
 
-The server candidate workflow is manually dispatched and publishes only `candidate-*`. Formal tags are created only after candidate Compose, API, migration, persistence, backup/restore, and Android checks pass. The server release workflow verifies the tag and test suite before publishing the image and release evidence. GitHub Releases remain draft until VM deployment and production smoke tests pass.
+The server candidate workflow is manually dispatched and publishes only `candidate-*`. Formal tags are created only after candidate Compose, API, migration, persistence, backup/restore, and Android checks pass. The server release workflow verifies the tag and test suite before publishing the image and release evidence. GitHub Releases remain draft until VM deployment and production smoke tests pass. A manual evidence rerun for an existing tag verifies stable tags without overwriting the exact patch tag.
 
 ## Troubleshooting
 
@@ -52,3 +52,12 @@ The server candidate workflow is manually dispatched and publishes only `candida
 - Pairing fails: verify the URL, trusted LAN/VPN route, server health, one-time code TTL, and Android TLS policy.
 - Forecast is not ready: keep the cached client data, verify ingestion/provider connectivity, and do not substitute fabricated values.
 - Restore fails: stop ingestion, validate the dump and target database, and use the documented temporary restore path.
+
+## v1.0.0 acceptance record
+
+The first formal release was deployed to `ubuntu-vm` under `~/meteohub/` with
+`IMAGE_TAG=1.0.0`. The stable GHCR digest, stable aliases, backup restore,
+candidate/stable rollback drill, Android pairing and analysis smoke test, and
+SHA256 verification are recorded in `docs/ubuntu-vm-deployment.md`. The VM is
+LAN/VPN-only on host port `18081`; add a trusted HTTPS reverse proxy or VPN
+before allowing connections outside that boundary.

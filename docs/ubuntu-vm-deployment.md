@@ -28,4 +28,20 @@ Candidate verification completed on 2026-08-03:
 - The VM's direct GHCR layer download is severely throttled. The identical amd64 build exported by the GHCR publishing workflow was transferred and loaded with its GHCR image tag; no source build was used. Direct GHCR pull remains a network limitation to resolve before relying on pull-only recovery on this VM.
 - This VM has no passwordless sudo, so a Docker daemon restart/host-reboot simulation is pending authorization. Container restart and Compose restart were verified.
 
-The formal stable version and rollback checks will be appended after the signed Android and server Release workflows complete. An item is not considered successful until the command output is recorded here and in the final report.
+## Formal v1.0.0 deployment
+
+- Release tag: `v1.0.0`, annotated tag points to server commit `57513a808c4ad94824df39ea1874789754bce071`
+- Stable image: `ghcr.io/igngserver/meteohub-server:1.0.0`
+- Stable multi-architecture digest: `sha256:32d089b5546f38a9a9bd3be215a4ad8e2c10f3cc50b9cf560d672f94f5806a53`
+- Stable aliases verified to resolve to the same digest: `1.0.0`, `1.0`, `1`, `latest`
+- Stable amd64 archive was checksum-verified from the Draft Release and loaded on the VM; no source checkout was built
+- Deployment directory: `~/meteohub/` (the requested `/opt/meteohub/` path is not writable by this account without an unavailable sudo password)
+- Image tag pinned in production `.env`: `IMAGE_TAG=1.0.0`
+- Listener: Docker publishes `0.0.0.0:18081` and `[::]:18081`; it is documented and used as LAN/VPN-only because no trusted public HTTPS endpoint is available
+- Stable health and version checks passed; unauthenticated location access returned `401`
+- Candidate data survived the stable upgrade, stable container restart, candidate rollback, and final stable re-upgrade: two test devices and one test location remained present
+- Stable backup `backups/stable-1.0.0.dump` was restored into a temporary PostgreSQL database and verified with two devices and one location, then the temporary database was removed
+- The Android signed Release APK paired through the LAN tunnel, synced the test location, and opened the stable analysis endpoint successfully after the stable upgrade
+- The only migration in this first release is `drizzle/0000_initial.sql`; empty-schema migration and rerun/idempotency passed. There is no earlier MeteoHub schema version to exercise as a distinct upgrade
+- Rollback drill passed: candidate `candidate-1.0.0` → stable `1.0.0` → candidate `candidate-1.0.0` → stable `1.0.0`, with health and data checks at each image switch
+- Compose/container restart and recovery were verified. A Docker daemon or host reboot was not performed because `sudo -n` is unavailable and restarting Docker could affect unrelated VM services; this remains an operator-authorized follow-up
