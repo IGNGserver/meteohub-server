@@ -15,6 +15,8 @@ curl -fsS http://127.0.0.1:8080/api/v1/health
 
 The Compose file is pull-only for production. It does not build a server image from a checkout. `latest` is convenient for a personal installation; production and upgrade testing should use an exact patch tag.
 
+The health endpoint is `/api/v1/health`; `/health` is not a supported route. Compose uses `restart: unless-stopped`: an operator-requested `docker kill` or `docker stop` is not a host/daemon failure simulation and may leave the service stopped until Compose starts it again. Verify daemon-restart recovery only with an authorized maintenance window.
+
 ## LAN, VPN, and HTTPS
 
 Pairing codes and device tokens are credentials. If no trusted HTTPS endpoint or VPN exists, bind the host port only to a trusted private LAN and use the Android app's explicit trusted-LAN HTTP option. Do not port-forward it to the internet and do not disable TLS verification. With an existing Caddy, Nginx, Traefik, or VPN, add a route to the chosen host port instead of starting a second proxy. Obtain a trusted certificate before using the service outside the private network.
@@ -36,6 +38,10 @@ For a compatible application rollback, set `IMAGE_TAG` back to the last known-go
 ## Backup and recovery
 
 Use `pg_dump --format=custom --no-owner`, retain multiple dated copies outside the VM, and test restoration periodically in a temporary PostgreSQL instance. After recovery run `db:verify`, start the server, check health, list devices, and perform one forecast request. The server's backup directory is not a substitute for an off-host backup.
+
+## Secret rotation
+
+Keep `.env` mode `600` and never print interpolated Compose configuration. Rotate `POSTGRES_PASSWORD` and `TOKEN_PEPPER` with fresh random values, synchronize the `meteohub` PostgreSQL role password, then force-recreate the server container from the pinned image. Verify network database authentication, `/api/v1/health`, and one authenticated request. A `TOKEN_PEPPER` change invalidates existing device tokens, so every device must pair again; preserve the database rows until re-pairing is complete.
 
 ## GHCR tag semantics
 

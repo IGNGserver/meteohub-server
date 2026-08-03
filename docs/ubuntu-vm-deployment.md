@@ -24,9 +24,9 @@ Candidate verification completed on 2026-08-03:
 - Candidate tag: `ghcr.io/igngserver/meteohub-server:candidate-1.0.0`
 - Multi-architecture candidate index digest: `sha256:69e6bbbcb2fee54d9193bb2cfd5c5d0cb41c8d139015116c6430b327a01ebc8e`
 - Candidate host port: `18081`, LAN/VPN-only; no public HTTPS exposure
-- Candidate checks passed: health, API v1 version, unauthenticated 401, pairing, location CRUD, city candidates, source listing, real Open-Meteo fetch, composite forecast, analysis, container restart persistence, migration rerun, custom-format backup, and restore into a temporary PostgreSQL database
+- Candidate checks passed: `GET /api/v1/health`, API v1 version, unauthenticated 401, pairing, location CRUD, city candidates, source listing, real Open-Meteo fetch, composite forecast, analysis, normal Compose restart persistence, migration rerun, custom-format backup, and restore into a temporary PostgreSQL database
 - The VM's direct GHCR layer download is severely throttled. The identical amd64 build exported by the GHCR publishing workflow was transferred and loaded with its GHCR image tag; no source build was used. Direct GHCR pull remains a network limitation to resolve before relying on pull-only recovery on this VM.
-- This VM has no passwordless sudo, so a Docker daemon restart/host-reboot simulation is pending authorization. Container restart and Compose restart were verified.
+- This VM has no passwordless sudo, so a Docker daemon restart/host-reboot simulation is pending authorization. Normal Compose restart and data persistence were verified. An explicit `docker kill` left the container stopped, which is expected for an operator-requested stop under `restart: unless-stopped`; it is not evidence of daemon-failure recovery. The service was restored with the exact release Compose file.
 
 ## Formal v1.0.0 deployment
 
@@ -38,10 +38,16 @@ Candidate verification completed on 2026-08-03:
 - Deployment directory: `~/meteohub/` (the requested `/opt/meteohub/` path is not writable by this account without an unavailable sudo password)
 - Image tag pinned in production `.env`: `IMAGE_TAG=1.0.0`
 - Listener: Docker publishes `0.0.0.0:18081` and `[::]:18081`; it is documented and used as LAN/VPN-only because no trusted public HTTPS endpoint is available
-- Stable health and version checks passed; unauthenticated location access returned `401`
+- Stable `GET /api/v1/health` and version checks passed; the intentionally unversioned `/health` path returns 404; unauthenticated location access returned `401`
 - Candidate data survived the stable upgrade, stable container restart, candidate rollback, and final stable re-upgrade: two test devices and one test location remained present
 - Stable backup `backups/stable-1.0.0.dump` was restored into a temporary PostgreSQL database and verified with two devices and one location, then the temporary database was removed
 - The Android signed Release APK paired through the LAN tunnel, synced the test location, and opened the stable analysis endpoint successfully after the stable upgrade
 - The only migration in this first release is `drizzle/0000_initial.sql`; empty-schema migration and rerun/idempotency passed. There is no earlier MeteoHub schema version to exercise as a distinct upgrade
 - Rollback drill passed: candidate `candidate-1.0.0` → stable `1.0.0` → candidate `candidate-1.0.0` → stable `1.0.0`, with health and data checks at each image switch
-- Compose/container restart and recovery were verified. A Docker daemon or host reboot was not performed because `sudo -n` is unavailable and restarting Docker could affect unrelated VM services; this remains an operator-authorized follow-up
+- Compose restart and recovery were verified. A Docker daemon or host reboot was not performed because `sudo -n` is unavailable and restarting Docker could affect unrelated VM services; this remains an operator-authorized follow-up. The Compose `unless-stopped` policy is retained so services that were running before a daemon restart can be restored, but that behavior is not claimed as tested here.
+
+## Post-deployment secret rotation
+
+The production database password and `TOKEN_PEPPER` were rotated after deployment without recording their values. The database role password was synchronized through the local PostgreSQL socket, the server container was force-recreated from the exact `1.0.0` image, and network authentication was verified with both the current password and a deliberately wrong password. Changing `TOKEN_PEPPER` invalidates existing device tokens; the signed Android Release app was paired again through the trusted LAN tunnel and successfully synced the test location afterward. Unused test pairing codes were expired.
+
+Do not run `docker compose config` into a terminal transcript or CI artifact: it renders interpolated database URLs and secrets. Use redacted status checks instead. For future rotation, update `.env`, synchronize the `meteohub` PostgreSQL role password, force-recreate the server container, verify `GET /api/v1/health` and an authenticated request, and plan a re-pair for every device when `TOKEN_PEPPER` changes.
