@@ -55,11 +55,33 @@ jobs:
           path: .
           format: spdx-json
           output-file: meteohub-server-candidate-${{ inputs.version }}.spdx.json
+
+      - name: Export amd64 candidate archive for offline VM validation
+        shell: bash
+        env:
+          IMAGE: ${{ steps.meta.outputs.image }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          docker buildx build \
+            --platform linux/amd64 \
+            --tag "$IMAGE:candidate-$VERSION" \
+            --label "org.opencontainers.image.source=https://github.com/${GITHUB_REPOSITORY}" \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            --label "org.opencontainers.image.version=$VERSION" \
+            --label "org.opencontainers.image.licenses=MIT" \
+            --provenance=false \
+            --sbom=false \
+            --load .
+          docker save "$IMAGE:candidate-$VERSION" -o "meteohub-server-candidate-$VERSION-amd64.tar"
+
       - name: Upload candidate evidence
         uses: actions/upload-artifact@v4
         with:
           name: meteohub-server-candidate-${{ inputs.version }}
-          path: meteohub-server-candidate-${{ inputs.version }}.spdx.json
+          path: |
+            meteohub-server-candidate-${{ inputs.version }}.spdx.json
+            meteohub-server-candidate-${{ inputs.version }}-amd64.tar
       - name: Publish digest summary
         shell: bash
         run: |
