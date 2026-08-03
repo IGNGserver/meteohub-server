@@ -97,6 +97,7 @@ jobs:
             echo EOF
           } >> "$GITHUB_OUTPUT"
       - name: Build and publish stable image
+        if: github.event_name == 'push'
         id: build
         uses: docker/build-push-action@v6
         with:
@@ -112,6 +113,18 @@ jobs:
             org.opencontainers.image.licenses=MIT
           provenance: mode=max
           sbom: true
+      - name: Verify existing stable tags for manual rerun
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+          IMAGE: ghcr.io/${{ github.repository_owner }}/meteohub-server
+        run: |
+          set -euo pipefail
+          docker buildx imagetools inspect "${IMAGE,,}:${VERSION}"
+          docker buildx imagetools inspect "${IMAGE,,}:${VERSION%.*}"
+          docker buildx imagetools inspect "${IMAGE,,}:${VERSION%%.*}"
+          docker buildx imagetools inspect "${IMAGE,,}:latest"
       - name: Export amd64 image archive for constrained hosts
         shell: bash
         env:
@@ -143,4 +156,8 @@ jobs:
           set -euo pipefail
           sha256sum compose.yml .env.example README.md DEPLOYMENT.md BACKUP_AND_RESTORE.md docs/release-runbook.md docs/ubuntu-vm-deployment.md COMPATIBILITY.md THIRD_PARTY_NOTICES.md "meteohub-server-${{ steps.meta.outputs.version }}-linux-amd64.tar.gz" meteohub-server-${{ steps.meta.outputs.version }}.spdx.json > SHA256SUMS
           gh release upload "$RELEASE_TAG" compose.yml .env.example README.md DEPLOYMENT.md BACKUP_AND_RESTORE.md docs/release-runbook.md docs/ubuntu-vm-deployment.md COMPATIBILITY.md THIRD_PARTY_NOTICES.md "meteohub-server-${{ steps.meta.outputs.version }}-linux-amd64.tar.gz" SHA256SUMS meteohub-server-${{ steps.meta.outputs.version }}.spdx.json --clobber
-          echo "Stable image digest: ${{ steps.build.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"
+          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
+            echo "Stable image was built and pushed by this tag run." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Existing stable tags were verified and not overwritten by this manual evidence rerun." >> "$GITHUB_STEP_SUMMARY"
+          fi
