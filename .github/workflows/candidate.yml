@@ -29,6 +29,10 @@ jobs:
         run: |
           set -euo pipefail
           [[ "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]
+      - name: Compute lowercase image name
+        id: meta
+        shell: bash
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/meteohub-server" >> "$GITHUB_OUTPUT"
       - name: Build and publish candidate image
         id: build
         uses: docker/build-push-action@v6
@@ -37,7 +41,7 @@ jobs:
           file: Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/meteohub-server:candidate-${{ inputs.version }}
+          tags: ${{ steps.meta.outputs.image }}:candidate-${{ inputs.version }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
