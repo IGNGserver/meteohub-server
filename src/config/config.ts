@@ -1,17 +1,25 @@
 import { z } from "zod";
 
+const booleanEnv = z.preprocess((value) => {
+  if (typeof value !== "string") return value;
+  const normalized = value.trim().toLowerCase();
+  if (["true", "1", "yes", "on"].includes(normalized)) return true;
+  if (["false", "0", "no", "off"].includes(normalized)) return false;
+  return value;
+}, z.boolean());
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   HOST: z.string().default("0.0.0.0"),
   PORT: z.coerce.number().int().min(1).max(65535).default(8080),
   DATABASE_URL: z.string().optional(),
-  DATABASE_SSL: z.coerce.boolean().default(false),
+  DATABASE_SSL: booleanEnv.default(false),
   APP_VERSION: z.string().default("1.0.0"),
   TOKEN_PEPPER: z.string().min(16).default("development-only-change-me-please"),
   PAIRING_CODE_TTL_MINUTES: z.coerce.number().int().min(1).max(60).default(10),
   RAW_RETENTION_DAYS: z.coerce.number().int().min(30).max(3650).default(365),
-  CALIBRATION_ENABLED: z.coerce.boolean().default(true),
-  INGESTION_ENABLED: z.coerce.boolean().default(false),
+  CALIBRATION_ENABLED: booleanEnv.default(true),
+  INGESTION_ENABLED: booleanEnv.default(false),
   OPEN_METEO_BASE_URL: z.string().url().default("https://api.open-meteo.com"),
   OPEN_METEO_ARCHIVE_BASE_URL: z.string().url().default("https://archive-api.open-meteo.com"),
   OPEN_METEO_SINGLE_RUNS_BASE_URL: z.string().url().default("https://single-runs-api.open-meteo.com"),
