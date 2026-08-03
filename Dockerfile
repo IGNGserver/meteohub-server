@@ -1,7 +1,7 @@
 FROM node:24-bookworm-slim AS build
 WORKDIR /app
 RUN corepack enable
-COPY package.json pnpm-lock.yaml tsconfig.json drizzle.config.ts ./
+COPY package.json pnpm-lock.yaml tsconfig.json tsconfig.build.json drizzle.config.ts ./
 COPY src ./src
 COPY scripts ./scripts
 COPY tests ./tests
