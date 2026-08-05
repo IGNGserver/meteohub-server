@@ -14,7 +14,7 @@ export async function buildServer(config: AppConfig, store: Store): Promise<Fast
   await app.register(cors, { origin: false });
   await app.register(swagger, { openapi: { info: { title: "MeteoHub Server API", version: config.APP_VERSION } } });
   await app.register(swaggerUi, { routePrefix: "/docs", uiConfig: { url: "/api/v1/openapi.json" } });
-  await registerRoutes(app, { store, config, auth: buildAuthService(store, config.TOKEN_PEPPER, config.PAIRING_CODE_TTL_MINUTES) });
+  await registerRoutes(app, { store, config, auth: buildAuthService(config.HUB_ACCESS_KEY) });
   app.setErrorHandler((error, request, reply) => { if (error instanceof Error && error.name === "ZodError") return reply.code(400).send({ error: "INVALID_INPUT", details: error }); request.log.error(error); return reply.code(500).send({ error: "INTERNAL_ERROR" }); });
   return app;
 }

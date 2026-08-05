@@ -5,7 +5,7 @@ import { MemoryStore } from "../../src/storage/store.js";
 
 describe("API integration smoke", () => {
   it("serves health and version without a database connection", async () => {
-    const app = await buildServer(loadConfig({ NODE_ENV: "test", TOKEN_PEPPER: "integration-pepper-long" }), new MemoryStore());
+    const app = await buildServer(loadConfig({ NODE_ENV: "test", HUB_ACCESS_KEY: "integration-hub-key" }), new MemoryStore());
     try {
       const health = await app.inject({ method: "GET", url: "/api/v1/health" });
       const version = await app.inject({ method: "GET", url: "/api/v1/version" });

@@ -2,7 +2,7 @@
 
 ## Compose
 
-Create `.env` from `.env.example`, set a unique `POSTGRES_PASSWORD` and a long random `TOKEN_PEPPER`, then run:
+Create `.env` from `.env.example`, set a unique `POSTGRES_PASSWORD` and the private `HUB_ACCESS_KEY`, then run:
 
 ```bash
 docker compose up -d
@@ -29,7 +29,7 @@ The API process does not silently mutate the schema on boot. This keeps upgrades
 
 ## LAN and TLS
 
-Pairing and device tokens are credentials. Prefer a reverse proxy with a trusted LAN certificate or a private VPN. Do not disable TLS verification in a client to “fix” certificate errors. Plain HTTP is acceptable only on a trusted, isolated LAN during initial development or a controlled first deployment, with no port forwarding and a clear understanding that pairing codes/tokens can be observed by anyone on that network. The Android client requires an explicit private-LAN HTTP opt-in and never disables HTTPS certificate verification. Do not expose port 8080 directly to the public internet.
+The hub access key is the credential for every client. Prefer a reverse proxy with a trusted LAN certificate or a private VPN. Do not disable TLS verification in a client to “fix” certificate errors. Plain HTTP is acceptable only on a trusted, isolated LAN during initial development or a controlled first deployment, with no port forwarding and a clear understanding that the shared key can be observed by anyone on that network. The Android client requires an explicit private-LAN HTTP opt-in and never disables HTTPS certificate verification. Do not expose port 8080 directly to the public internet.
 
 The server does not terminate TLS itself in Phase 1; reverse-proxy TLS and certificate rotation are deployment concerns. The API deliberately sets no CORS origin for browser use by default.
 

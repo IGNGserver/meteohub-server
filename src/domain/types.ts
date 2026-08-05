@@ -20,23 +20,6 @@ export interface HubLocation {
   rawRetentionDays: number;
 }
 
-export interface Device {
-  id: UUID;
-  name: string;
-  createdAt: string;
-  lastSeenAt: string | null;
-  revokedAt: string | null;
-  syncCursor: number;
-}
-
-export interface PairingCode {
-  id: UUID;
-  code: string;
-  expiresAt: string;
-  usedAt?: string | null;
-  createdAt: string;
-}
-
 export interface SyncChange {
   version: number;
   entity: "hub_location";

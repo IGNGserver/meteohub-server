@@ -11,7 +11,7 @@ const location: HubLocation = { id: "00000000-0000-0000-0000-000000000001", name
 
 describe("Open-Meteo adapter", () => {
   it("normalizes the provider response and preserves an explicit model run time", async () => {
-    const config = loadConfig({ NODE_ENV: "test", TOKEN_PEPPER: "test-pepper-which-is-long" });
+    const config = loadConfig({ NODE_ENV: "test", HUB_ACCESS_KEY: "test-hub-key" });
     const provider = new OpenMeteoProvider(config, async () => new Response(JSON.stringify({ model_run_at: "2026-08-03T00:00:00Z", generationtime_ms: 1, hourly: { time: ["2026-08-03T06:00:00Z"], temperature_2m: [28], apparent_temperature: [30], precipitation: [0.2], precipitation_probability: [70], wind_speed_10m: [12], wind_direction_10m: [350], weather_code: [61], cloud_cover: [80], relative_humidity_2m: [80], surface_pressure: [1005] } }), { status: 200, headers: { "content-type": "application/json" } }));
     const result = await provider.fetchForecast(location, MODEL_REGISTRY[0]!);
     expect(result.modelRunAt).toBe("2026-08-03T00:00:00.000Z");

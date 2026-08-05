@@ -51,3 +51,15 @@ Candidate verification completed on 2026-08-03:
 The production database password and `TOKEN_PEPPER` were rotated after deployment without recording their values. The database role password was synchronized through the local PostgreSQL socket, the server container was force-recreated from the exact `1.0.0` image, and network authentication was verified with both the current password and a deliberately wrong password. Changing `TOKEN_PEPPER` invalidates existing device tokens; the signed Android Release app was paired again through the trusted LAN tunnel and successfully synced the test location afterward. Unused test pairing codes were expired, and the two pre-rotation test devices were revoked, leaving one active test device. A post-rotation backup restored successfully into a temporary database with three device rows, one hub location, and one sync change.
 
 Do not run `docker compose config` into a terminal transcript or CI artifact: it renders interpolated database URLs and secrets. Use redacted status checks instead. For future rotation, update `.env`, synchronize the `meteohub` PostgreSQL role password, force-recreate the server container, verify `GET /api/v1/health` and an authenticated request, and plan a re-pair for every device when `TOKEN_PEPPER` changes.
+
+## Shared-key authentication migration
+
+Completed on 2026-08-05 for the personal `ubuntu-vm` installation:
+
+- A no-secret source archive was built on the VM as `ghcr.io/igngserver/meteohub-server:shared-key-20260805`.
+- The existing PostgreSQL data volume and host listener `18081` were preserved.
+- A custom-format backup was created at `~/meteohub/backups/pre-shared-key-20260805.dump` before replacement.
+- The deployment `.env` now contains a permission-restricted shared `HUB_ACCESS_KEY`; the value is intentionally not recorded here.
+- The previous Compose file and `.env` remain as `compose.before-shared-key-20260805.yml` and `.env.before-shared-key-20260805` for rollback.
+- Migration output reported the database up to date. Health returned `200`, unauthenticated locations returned `401`, authenticated locations returned `200`, and the retired `/api/v1/pair` and `/api/v1/devices` routes returned `404`.
+- A normal server-container restart completed and the authenticated locations check returned `200` afterward.

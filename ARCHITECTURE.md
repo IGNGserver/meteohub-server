@@ -1,8 +1,8 @@
 # Architecture
 
 ```text
-Android / other paired devices
-             │ Bearer device token
+Android / other clients
+             │ Bearer shared hub access key
              ▼
       Fastify API + OpenAPI
        │          │
@@ -10,7 +10,7 @@ Android / other paired devices
        ▼
 PostgresStore (Drizzle schema, parameterized SQL adapter)
        │
-       ├── locations, devices, settings, sync changes/tombstones
+       ├── locations, settings, sync changes/tombstones
        ├── forecast runs/values, observations, verification, calibration
        └── fused forecast snapshots and ingestion job records
 
@@ -26,6 +26,8 @@ Scheduler → IngestionCoordinator → WeatherProvider → Open-Meteo
 No Redis is used: the single-user deployment has one server process, PostgreSQL provides the durable lock/change ledger, and the scheduler’s in-process guard prevents duplicate concurrent runs. If horizontal server replicas become a requirement, add a PostgreSQL advisory-lock based scheduler before scaling out.
 
 The PostgreSQL schema is declared in `src/storage/schema.ts`; `drizzle/0000_initial.sql` is intentionally rerunnable. The current store adapter uses parameterized SQL for the operational query set while keeping Drizzle as the schema/type source and migration tool boundary.
+
+The initial migration contains legacy `devices` and `pairing_codes` tables from the retired authentication design. They are intentionally left in place for non-destructive upgrades, but the current schema, store, API, and clients never read or write them.
 
 ## Data flow
 

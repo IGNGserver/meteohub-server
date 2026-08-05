@@ -2,11 +2,13 @@
 
 The future MeteoHub Android client should remain a Breezy Weather fork. Ordinary local locations continue using Breezy’s original source and refresh path. Only a location paired to a MeteoHub hub-location ID uses this server’s fused result.
 
-## Pairing
+## Connection
 
-1. User enters the HTTPS server URL and the six/ten-character one-time code.
-2. `POST /api/v1/pair` with `{ "code": "...", "deviceName": "Pixel" }` returns a bearer token and device metadata.
-3. Store the token in Android Keystore-backed secure storage. Do not log it.
+1. User enters the HTTPS server URL and the shared hub access key.
+2. Validate the key with an authenticated `GET /api/v1/locations` request.
+3. Store the key in Android Keystore-backed secure storage. Do not log it.
+
+The server has no user, device, pairing, or per-client token state. Every authorized client can read, create, update, reorder, and delete hub locations.
 
 ## Data mapping
 
@@ -20,4 +22,4 @@ Persist the last server cursor. Call `/locations/sync?since=<cursor>` after reco
 
 ## Errors and TLS
 
-Handle `401` by marking the device disconnected and requiring re-pairing; handle `503 FORECAST_NOT_READY` with cached data and a non-alarming “analysis is collecting data” state. Never disable TLS verification. Plain HTTP is only for a trusted development LAN and must never be silently enabled for an internet URL.
+Handle `401` by clearing the stored key and asking the user to enter the hub key again; handle `503 FORECAST_NOT_READY` with cached data and a non-alarming “analysis is collecting data” state. Never disable TLS verification. Plain HTTP is only for a trusted development LAN and must never be silently enabled for an internet URL.

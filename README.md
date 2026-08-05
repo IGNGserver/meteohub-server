@@ -1,6 +1,6 @@
 # MeteoHub Server
 
-MeteoHub Server is a single-user, self-hosted weather analysis hub for multiple paired devices. It archives the forecast that was actually published by each model, blends available models, and exposes a stable API for a future Breezy Weather fork.
+MeteoHub Server is a single-user, self-hosted weather analysis hub for multiple clients. It archives the forecast that was actually published by each model, blends available models, and exposes a stable API for the MeteoHub Weather Android client. All clients share one hub access key; there is no user or device account layer.
 
 It is CPU-only. It does not run a global weather model locally and does not put an LLM in the prediction path. Recommended sizing is 4 CPU cores and 8 GB RAM; 2 cores and 4 GB RAM is a practical minimum for a small number of hub locations. It does not promise to beat every official source. “Confidence” means model agreement plus available historical skill, not an absolute guarantee.
 
@@ -8,17 +8,17 @@ It is CPU-only. It does not run a global weather model locally and does not put 
 
 ```bash
 cp .env.example .env
-# Set POSTGRES_PASSWORD and TOKEN_PEPPER in .env
+# Set POSTGRES_PASSWORD and HUB_ACCESS_KEY in .env
 docker compose up -d --build
 ```
 
-Open `http://localhost:8080/docs`. The first `POST /api/v1/pairing-codes` creates a one-time code. Pair a device with `POST /api/v1/pair`; store the returned token in the client’s secure storage. See [DEPLOYMENT.md](DEPLOYMENT.md) for LAN/TLS boundaries.
+Open `http://localhost:8080/docs`. In a client, enter the hub URL and the configured access key; the client stores the key in secure storage and immediately synchronizes locations. See [DEPLOYMENT.md](DEPLOYMENT.md) for LAN/TLS boundaries.
 
 For local domain/API work without PostgreSQL, omit `DATABASE_URL` and run `pnpm dev`; the server uses an in-memory store explicitly intended for development and tests.
 
 ## Project status
 
-Phase 1 includes a Fastify API, PostgreSQL 16 schema/migrations, Open-Meteo Provider adapter, idempotent ingestion coordinator, static cold-start weights, circular wind fusion, severity-weighted WMO code fusion, spread/confidence, sample-gated rolling calibration, pairing/device auth, sync cursors and tombstones, OpenAPI, backup scripts, CI, and tests.
+Phase 1 includes a Fastify API, PostgreSQL 16 schema/migrations, Open-Meteo Provider adapter, idempotent ingestion coordinator, static cold-start weights, circular wind fusion, severity-weighted WMO code fusion, spread/confidence, sample-gated rolling calibration, shared hub-key auth, sync cursors and tombstones, OpenAPI, backup scripts, CI, and tests.
 
 The production scheduler is conservative: it runs only when `INGESTION_ENABLED=true`, skips disabled locations, retries temporary provider failures, and leaves a partial model set usable when one model is unavailable.
 

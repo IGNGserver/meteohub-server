@@ -9,8 +9,6 @@ import { openApiDocument } from "./openapi.js";
 const idParam = z.object({ id: z.string().uuid() });
 const locationInput = z.object({ name: z.string().trim().min(1).max(120), latitude: z.number().min(-90).max(90), longitude: z.number().min(-180).max(180), timezone: z.string().min(1).max(80), countryCode: z.string().length(2).toUpperCase().nullable().optional(), admin1: z.string().max(120).nullable().optional(), admin2: z.string().max(120).nullable().optional(), alias: z.string().max(120).nullable().optional(), sortOrder: z.number().int().min(-100000).max(100000).optional(), analysisEnabled: z.boolean().optional(), fallbackProvider: z.string().max(80).optional(), rawRetentionDays: z.number().int().min(30).max(3650).optional() });
 const patchLocation = locationInput.partial().extend({ expectedVersion: z.number().int().min(0).optional() });
-const pairingInput = z.object({ code: z.string().trim().min(6).max(32), deviceName: z.string().trim().min(1).max(80) });
-const deviceNameInput = z.object({ name: z.string().trim().min(1).max(80) });
 const reorderInput = z.object({ ids: z.array(z.string().uuid()).min(1).max(100) });
 const syncQuery = z.object({ since: z.coerce.number().int().min(0).default(0), limit: z.coerce.number().int().min(1).max(500).default(100) });
 const evolutionQuery = z.object({ variable: z.string().min(1).max(80), validAt: z.string().datetime().optional() });
@@ -20,15 +18,10 @@ export interface RouteOptions { store: Store; auth: AuthService; config: AppConf
 
 export async function registerRoutes(app: FastifyInstance, options: RouteOptions): Promise<void> {
   const { store, auth, config } = options;
-  const withAuth = async (request: FastifyRequest, reply: FastifyReply): Promise<boolean> => (await requireAuth(request, reply, auth, store)) !== null;
+  const withAuth = async (request: FastifyRequest, reply: FastifyReply): Promise<boolean> => requireAuth(request, reply, auth);
   app.get("/api/v1/health", async () => ({ status: "ok", service: "meteohub-server", timestamp: new Date().toISOString(), database: config.DATABASE_URL ? "configured" : "memory" }));
   app.get("/api/v1/version", async () => ({ version: config.APP_VERSION, apiVersion: "v1", node: process.version }));
   app.get("/api/v1/openapi.json", async () => openApiDocument(config.APP_VERSION));
-  app.post("/api/v1/pairing-codes", async (request, reply) => { const devices = await store.listDevices(); if (devices.length > 0 && !(await withAuth(request, reply))) return; const result = await auth.issuePairingCode(); return reply.code(201).send(result); });
-  app.post("/api/v1/pair", async (request, reply) => { const body = pairingInput.parse(request.body); try { return reply.code(201).send(await auth.pair(body.code, body.deviceName)); } catch (error) { if (error instanceof Error && error.message === "PAIRING_CODE_INVALID") return reply.code(400).send({ error: "PAIRING_CODE_INVALID" }); throw error; } });
-  app.get("/api/v1/devices", { preHandler: withAuth }, async () => store.listDevices());
-  app.patch("/api/v1/devices/:id", { preHandler: withAuth }, async (request) => { const { id } = idParam.parse(request.params); const body = deviceNameInput.parse(request.body); return store.renameDevice(id, body.name); });
-  app.delete("/api/v1/devices/:id", { preHandler: withAuth }, async (request) => { const { id } = idParam.parse(request.params); return store.revokeDevice(id); });
   app.get("/api/v1/locations", { preHandler: withAuth }, async () => store.getLocations());
   app.get("/api/v1/locations/candidates", { preHandler: withAuth }, async (request) => { const query = z.object({ latitude: z.coerce.number().min(-90).max(90), longitude: z.coerce.number().min(-180).max(180), timezone: z.string().optional(), countryCode: z.string().optional() }).parse(request.query); const locations = await store.getLocations(); return locations.map((location) => ({ location, distanceKm: haversineKm(query.latitude, query.longitude, location.latitude, location.longitude), match: matchScore(query, location) })).sort((a, b) => b.match - a.match || a.distanceKm - b.distanceKm).slice(0, 10); });
   app.post("/api/v1/locations", { preHandler: withAuth }, async (request, reply) => reply.code(201).send(await store.createLocation(locationInput.parse(request.body))));

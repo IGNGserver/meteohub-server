@@ -14,9 +14,8 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(8080),
   DATABASE_URL: z.string().optional(),
   DATABASE_SSL: booleanEnv.default(false),
-  APP_VERSION: z.string().default("1.0.0"),
-  TOKEN_PEPPER: z.string().min(16).default("development-only-change-me-please"),
-  PAIRING_CODE_TTL_MINUTES: z.coerce.number().int().min(1).max(60).default(10),
+  APP_VERSION: z.string().default("1.1.0"),
+  HUB_ACCESS_KEY: z.string().trim().min(6).default("development-only-change-me-please"),
   RAW_RETENTION_DAYS: z.coerce.number().int().min(30).max(3650).default(365),
   CALIBRATION_ENABLED: booleanEnv.default(true),
   INGESTION_ENABLED: booleanEnv.default(false),
@@ -33,8 +32,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const config = envSchema.parse(env);
   if (config.NODE_ENV === "production") {
     if (!config.DATABASE_URL) throw new Error("DATABASE_URL is required in production");
-    if (config.TOKEN_PEPPER === "development-only-change-me-please" || config.TOKEN_PEPPER === "replace-with-a-long-random-secret") {
-      throw new Error("TOKEN_PEPPER must be replaced in production");
+    if (["development-only-change-me-please", "replace-with-a-long-random-secret", "replace-with-your-private-hub-key"].includes(config.HUB_ACCESS_KEY)) {
+      throw new Error("HUB_ACCESS_KEY must be replaced in production");
     }
     if (["debug", "trace"].includes(config.LOG_LEVEL.toLowerCase())) throw new Error("Debug logging is not allowed in production");
   }

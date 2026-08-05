@@ -7,12 +7,12 @@ Public endpoints:
 - `GET /health`
 - `GET /version`
 - `GET /openapi.json`
-- `POST /pairing-codes` — bootstrap-only while no device exists; thereafter requires a valid device token.
-- `POST /pair` — consumes a code once and returns `{ token, device }`.
+Authenticated endpoints use the same shared key on every client: `Authorization: Bearer <hub-access-key>`.
 
-Authenticated endpoints use `Authorization: Bearer <device-token>`:
+There is no user, device, pairing, or per-client token mechanism. The hub access key is configured on the server and entered by each client.
 
-- `GET /devices`, `PATCH /devices/{id}`, `DELETE /devices/{id}`
+Authenticated endpoints:
+
 - `GET /locations`, `POST /locations`, `PATCH /locations/{id}`, `DELETE /locations/{id}`
 - `POST /locations/reorder` with `{ "ids": ["uuid", ...] }`
 - `GET /locations/sync?since=<cursor>&limit=<n>`

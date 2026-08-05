@@ -14,7 +14,7 @@ DATABASE_URL=postgres://meteohub:...@localhost:5432/meteohub \
   BACKUP_FILE=backups/meteohub-2026-08-03.dump pnpm run restore
 ```
 
-`pg_restore --clean --if-exists` can remove objects in the target database. Confirm the target database is the intended MeteoHub database before running it; never point it at an unrelated database. After restore, run `pnpm run db:verify`, start the server, check `/health`, list devices, and test one forecast request.
+`pg_restore --clean --if-exists` can remove objects in the target database. Confirm the target database is the intended MeteoHub database before running it; never point it at an unrelated database. After restore, run `pnpm run db:verify`, start the server, check `/api/v1/health`, list locations with the hub access key, and test one forecast request.
 
 Raw forecast values default to 365 days. The cleanup command below deletes old raw values while retaining daily verification aggregates and calibration parameters. Run it from an external scheduler and monitor disk usage.
 

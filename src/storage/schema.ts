@@ -11,25 +11,6 @@ export const settings = pgTable("settings", {
   ...timestamps,
 });
 
-export const devices = pgTable("devices", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  name: text("name").notNull(),
-  tokenHash: text("token_hash").notNull(),
-  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
-  revokedAt: timestamp("revoked_at", { withTimezone: true }),
-  syncCursor: integer("sync_cursor").notNull().default(0),
-  ...timestamps,
-}, (table) => ({ tokenHashIdx: uniqueIndex("devices_token_hash_idx").on(table.tokenHash) }));
-
-export const pairingCodes = pgTable("pairing_codes", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  codeHash: text("code_hash").notNull(),
-  codeHint: varchar("code_hint", { length: 4 }).notNull(),
-  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-  usedAt: timestamp("used_at", { withTimezone: true }),
-  ...timestamps,
-});
-
 export const hubLocations = pgTable("hub_locations", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),

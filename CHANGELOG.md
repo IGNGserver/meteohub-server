@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0 — Shared-key authentication
+
+- Replace pairing codes, device records, and per-client tokens with one shared hub access key.
+- Allow every authorized client to read, create, update, reorder, and delete hub locations.
+- Keep legacy authentication tables only for non-destructive database upgrades; runtime code no longer reads or writes them.
+- Update the Android integration contract, deployment guidance, security notes, and release evidence for the new connection model.
+
 ## 1.0.0 — First stable release
 
 - First stable MeteoHub Server release with API v1 compatibility.

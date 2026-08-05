@@ -7,7 +7,7 @@ describe("production configuration", () => {
       NODE_ENV: "production",
       DATABASE_URL: "postgres://meteohub:test@localhost:5432/meteohub",
       DATABASE_SSL: "false",
-      TOKEN_PEPPER: "a-production-secret-that-is-long-enough",
+      HUB_ACCESS_KEY: "production-hub-key-100728",
       CALIBRATION_ENABLED: "false",
       INGESTION_ENABLED: "true",
     });
@@ -20,12 +20,12 @@ describe("production configuration", () => {
   const base = {
     NODE_ENV: "production",
     DATABASE_URL: "postgres://meteohub:strong-password@postgres:5432/meteohub",
-    TOKEN_PEPPER: "a-production-secret-that-is-not-a-placeholder",
+    HUB_ACCESS_KEY: "production-hub-key-100728",
   };
 
   it("requires a database and non-placeholder secret", () => {
     expect(() => loadConfig({ ...base, DATABASE_URL: undefined })).toThrow("DATABASE_URL");
-    expect(() => loadConfig({ ...base, TOKEN_PEPPER: "development-only-change-me-please" })).toThrow("TOKEN_PEPPER");
+    expect(() => loadConfig({ ...base, HUB_ACCESS_KEY: "development-only-change-me-please" })).toThrow("HUB_ACCESS_KEY");
   });
 
   it("rejects debug logging in production", () => {
